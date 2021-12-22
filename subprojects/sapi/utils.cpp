@@ -1,5 +1,3 @@
-#ifdef __cplusplus
-
 using namespace std;
 
 #include <optional>
@@ -39,5 +37,3 @@ void log(char* fmt...) {
 
     DebugMessage(M64MSG_INFO, "SAPI: %s\n", str);
 }
-
-#endif

@@ -466,12 +466,12 @@ endif
 # 2. variables for profiling and adding debugging symbols
 ifeq ($(PROFILE), 1)
   CFLAGS += -pg -g
-  INSTALL_STRIP_FLAG ?= 
+  INSTALL_STRIP_FLAG ?=
 else
   ifeq ($(DEBUG), 1)
     CFLAGS += -g
     OPTFLAGS = -Og
-    INSTALL_STRIP_FLAG ?= 
+    INSTALL_STRIP_FLAG ?=
   else
     CFLAGS += -DNDEBUG
     ifneq ($(OS),OSX)

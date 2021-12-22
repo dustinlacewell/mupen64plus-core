@@ -1,5 +1,3 @@
-#ifdef __cplusplus
-
 #include <string>
 #include <optional>
 #include <filesystem>
@@ -80,40 +78,12 @@ duk_ret_t duk_log(duk_context* ctx) {
 }
 
 duk_ret_t duk_register_callback(duk_context* ctx) {
-    duk_require_function(ctx, 0);
-    duk_dup(ctx, 0);
-    duk_put_global_string(ctx, "cb");
-    return 0;
-}
-
-duk_ret_t native_set_timeout(duk_context *ctx) {
-    long timeout;
-     timeout = (long) duk_require_uint(ctx, 1);
-
-    duk_dup(ctx, 0);
-    duk_put_global_string(ctx, "_callbackFunc");
-    return 0;
-}
-
-void duk_invoke_callback(duk_context* ctx) {
     register_listener(ctx);
+    return 0;
 }
 
-void _invoke_callback(char* name) {
-    ScriptMeta* meta = scripts.at(name);
-
-    if (!meta) {
-        log("Could not find script %s", name);
-        return;
-    }
-
-    if (!meta->ctx) {
-        log("Script not active: %s", name);
-        return;
-    }
-
-    duk_context* ctx = meta->ctx;
-    duk_invoke_callback(ctx);
+void _invoke_callback(char* event) {
+    call_listeners(event);
 }
 
 void _enable_script(char* name) {
@@ -212,5 +182,3 @@ void _init_sapi() {
 
     log("Loaded %d scripts", i);
 }
-
-#endif

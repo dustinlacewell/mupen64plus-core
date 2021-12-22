@@ -1,7 +1,5 @@
 #pragma once
 
-#ifdef __cplusplus
-
 using namespace std;
 
 #include <optional>
@@ -12,5 +10,3 @@ using namespace std;
 
 optional<string> read_file_text(string path);
 void log(char* fmt...);
-
-#endif

@@ -1,5 +1,3 @@
-#ifdef __cplusplus
-
 #include <duktape.h>
 
 #include "./sapi.hpp"
@@ -65,5 +63,3 @@ void call_listeners(char* event) {
         call_listener(event, (char*)it->first.c_str());
     }
 }
-
-#endif
