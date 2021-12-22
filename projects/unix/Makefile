@@ -622,6 +622,7 @@ endif
 
 # script api
 SOURCE += $(SUBDIR)/sapi/utils.cpp
+SOURCE += $(SUBDIR)/sapi/events.cpp
 SOURCE += $(SUBDIR)/sapi/sapi.cpp
 CXXFLAGS += -I$(SUBDIR)/sapi -std=c++17
 
