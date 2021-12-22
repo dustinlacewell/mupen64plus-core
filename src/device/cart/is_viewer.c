@@ -24,10 +24,12 @@
 #define M64P_CORE_PROTOTYPES 1
 #include "api/callbacks.h"
 #include "main/util.h"
+#include <duktape.h>
 
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 #include <string.h>
+#include "../../subprojects/sapi/sapi.hpp"
 
 #define IS_ADDR_MASK UINT32_C(0x00000fff)
 
@@ -71,7 +73,44 @@ void write_is_viewer(void* opaque, uint32_t address, uint32_t value, uint32_t ma
             if (newline)
             {
                 *newline = '\0';
-                DebugMessage(M64MSG_INFO, "IS64: %s", is_viewer->output_buffer);
+
+                if (strncmp(is_viewer->output_buffer, "!!", 2) == 0)
+                {
+                    // remove !!
+                    char* event = is_viewer->output_buffer + 2;
+                    invoke_callback(event);
+                }
+
+                else if (strncmp(is_viewer->output_buffer, "JS:", 3) == 0)
+                {
+                    invoke_callback("test script");
+                    DebugMessage(M64MSG_INFO, "JS: Evaluating: %s", is_viewer->output_buffer + 3);
+                    char* js = is_viewer->output_buffer + 3;
+                    duk_context *ctx;
+                    ctx = duk_create_heap_default();
+
+                    if (!ctx) {
+                        DebugMessage(M64MSG_ERROR, "IS64: failed to create Duktape heap");
+                        return;
+                    }
+
+
+                    if (duk_peval_string(ctx, js) != 0) {
+                        DebugMessage(M64MSG_ERROR, "IS64: failed to evaluate JS code: %s", js);
+                        return;
+                    }
+                    // store result in output buffer
+                    DebugMessage(M64MSG_INFO, "JS: %s", (char*)duk_safe_to_string(ctx, -1));
+
+                    duk_destroy_heap(ctx);
+                }
+                else if (strncmp(is_viewer->output_buffer, "JS:", 3) == 0) {
+                    DebugMessage(M64MSG_INFO, "%s", is_viewer->output_buffer);
+                }
+                // else {
+                //     DebugMessage(M64MSG_INFO, "IS64: %s", is_viewer->output_buffer);
+                // }
+
                 memset(is_viewer->output_buffer, 0, is_viewer->buffer_pos);
                 is_viewer->buffer_pos = 0;
             }

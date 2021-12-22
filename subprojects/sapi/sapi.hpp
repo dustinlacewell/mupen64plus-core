@@ -1,11 +1,14 @@
-#ifdef __cplusplus
+#pragma once
 
-using namespace std;
+#ifdef __cplusplus
 
 #include <vector>
 #include <map>
 #include <string>
 #include <duktape.h>
+
+using namespace std;
+
 
 class ScriptMeta {
     public:
@@ -22,23 +25,37 @@ class GameMeta {
 
 typedef map<string, ScriptMeta*> ScriptMap;
 typedef map<string, GameMeta*> GameMap;
+typedef map<string, map<string, ScriptMeta*>> EventMap;
 
 GameMap games;
 ScriptMap scripts;
+EventMap events;
 
-void load_scripts();
-ScriptMeta init_script(char* path);
-void enable_script(char* name);
-void disable_script(char* name);
-
+void _init_sapi();
+void _enable_script(char* name);
+void _disable_script(char* name);
+void _invoke_callback(char* name);
 
 extern "C" {
     void init_sapi() {
-        load_scripts();
+        _init_sapi();
     };
+    void enable_script(char* name) {
+        _enable_script(name);
+    }
+    void disable_script(char* name) {
+        _disable_script(name);
+    }
+    void invoke_callback(char* name) {
+        _invoke_callback(name);
+    }
 }
 #else
-void init_sapi();
+    // C exported functions
+    void init_sapi();
+    void enable_script(char* name);
+    void disable_script(char* name);
+    void invoke_callback(char* name);
 #endif
 
 
