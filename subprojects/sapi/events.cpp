@@ -1,7 +1,10 @@
+#pragma once
+
 #include <duktape.h>
 
-#include "./sapi.hpp"
-#include "./utils.hpp"
+#include "./types.hpp"
+#include "./globals.hpp"
+#include "./utils.cpp"
 
 
 void remove_listener(char* event, ScriptMeta* meta) {
@@ -21,12 +24,17 @@ void register_listener(duk_context* ctx) {
     if (duk_get_top(ctx) != 2) {
         duk_error(ctx, DUK_ERR_ERROR, "Invalid arguments");
     }
+
+    log("Attempting to register listener...");
+
     duk_require_string(ctx, 0);
     duk_require_function(ctx, 1);
 
     // get event name
     const char* event = duk_get_string(ctx, 0);
     char* symbol = event_symbol((char*)event);
+
+    log("Found event: %s", event);
 
     // store callback on es side
     duk_push_heap_stash(ctx);
@@ -38,6 +46,18 @@ void register_listener(duk_context* ctx) {
     duk_get_prop_string(ctx, -1, "script_name");
     char* script_name = (char*)duk_to_string(ctx, -1);
 
+    log("Found script name: %s", script_name);
+
+    // check if script with name exists
+    if (scripts.find(script_name) == scripts.end()) {
+        duk_error(ctx, DUK_ERR_ERROR, "Script with name %s does not exist", script_name);
+    }
+
+    // check if event exists
+    if (events.find(event) == events.end()) {
+        events[event] = map<string, ScriptMeta*>();
+    }
+
     // get the script meta
     ScriptMeta* meta = scripts.at(script_name);
 
@@ -48,6 +68,7 @@ void register_listener(duk_context* ctx) {
 }
 
 void call_listener(char* event, char* name) {
+    log("Calling %s listener for script %s", event, name);
     ScriptMeta* meta = scripts.at(name);
 
     char* symbol = event_symbol(event);
@@ -58,7 +79,13 @@ void call_listener(char* event, char* name) {
 }
 
 void call_listeners(char* event) {
+    log("Calling listeners for %s event", event);
+    if (events.find(event) == events.end()) {
+        log("No listeners for %s event", event);
+        return;
+    }
     map<string, ScriptMeta*> listeners = events.at(event);
+    log("Found %d listeners for %s event", listeners.size(), event);
     for (auto it = listeners.begin(); it != listeners.end(); it++) {
         call_listener(event, (char*)it->first.c_str());
     }

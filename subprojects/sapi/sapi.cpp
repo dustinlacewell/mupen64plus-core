@@ -7,41 +7,18 @@
 #include <duktape.h>
 
 #include "./sapi.hpp"
-#include "./utils.hpp"
-#include "./events.hpp"
+#include "./types.hpp"
+#include "./globals.hpp"
+
+#include "./utils.cpp"
+#include "./events.cpp"
+#include "./duk.cpp"
 
 using namespace std;
 namespace fs = std::filesystem;
 
-optional<string> get_script_name(string line) {
-    // check line is >= 3 chars
-    if (line.length() < 3) {
-        return {};
-    }
-
-    // trim whitespace
-    boost::trim(line);
-
-    // check line starts with "//"
-    if (line[0] != '/' || line[1] != '/') {
-        return {};
-    }
-
-    // remove "//" prefix
-    line = line.substr(2);
-
-    boost::trim(line);
-
-    return line;
-}
-
-vector<string> split_string(string line, string delimiter) {
-    vector<string> result;
-    boost::split(result, line, boost::is_any_of(delimiter));
-    return result;
-}
-
 optional<ScriptMeta*> init_script(string path) {
+    log("Initializing script: %s", path);
     optional<string> text = read_file_text(path);
 
     if (!text) {
@@ -66,27 +43,13 @@ optional<ScriptMeta*> init_script(string path) {
     return meta;
 }
 
-duk_ret_t duk_log(duk_context* ctx) {
-    if (duk_get_top(ctx) != 1) {
-        /* throw TypeError if no arguments given */
-        return DUK_RET_TYPE_ERROR;
-    }
-    // get first argument as string
-    const char* message = duk_to_string(ctx, 0);
-    log("%s", message);
-    return 0;
-}
-
-duk_ret_t duk_register_callback(duk_context* ctx) {
-    register_listener(ctx);
-    return 0;
-}
-
-void _invoke_callback(char* event) {
+void invoke_callback(char* event) {
+    log("Invoking callbacks for event %s", event);
     call_listeners(event);
 }
 
-void _enable_script(char* name) {
+void enable_script(char* name) {
+    log("Enabling script %s", name);
     ScriptMeta* s = scripts.at(name);
     if (s) {
         if (s->ctx == NULL) {
@@ -119,7 +82,8 @@ void _enable_script(char* name) {
     }
 }
 
-void _disable_script(char* name) {
+void disable_script(char* name) {
+    log("Disabling script %s", name);
     ScriptMeta* s = scripts.at(name);
     if (s) {
         if (s->ctx) {
@@ -130,6 +94,7 @@ void _disable_script(char* name) {
 }
 
 vector<string> load_scripts_from(const char* path) {
+    log("Loading scripts from %s", path);
     // create new vector
     vector<string> scripts = vector<string>();
 
@@ -146,8 +111,8 @@ vector<string> load_scripts_from(const char* path) {
     return scripts;
 }
 
-void _init_sapi() {
-    log("Loading scripts");
+void init_sapi() {
+    log("Initializing SAPI");
     games = GameMap();
     scripts = ScriptMap();
     events = EventMap();
@@ -172,7 +137,7 @@ void _init_sapi() {
 
         // add script to map
         scripts.insert({ name, meta.value() });
-        _enable_script((char*)name.c_str());
+        enable_script((char*)name.c_str());
 
         log("Loaded script: %s", name.c_str());
 

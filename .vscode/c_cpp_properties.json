@@ -1,0 +1,16 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "defines": [],
+            "compilerPath": "/nix/store/xiq6j4jsyj351p8q3yw9cg1hdqp9m685-gcc-wrapper-10.3.0/bin/gcc",
+            "cStandard": "c99",
+            "cppStandard": "c++20",
+            "intelliSenseMode": "linux-gcc-x64"
+        }
+    ],
+    "version": 4
+}

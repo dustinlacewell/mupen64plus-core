@@ -443,7 +443,7 @@ INSTALL  ?= install
 MKDIR    ?= mkdir -p
 AWK      ?= awk
 COMPILE.c = $(Q_CC)$(CC) $(OPTFLAGS) $(WARNFLAGS) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c
-COMPILE.cc = $(Q_CXX)$(CXX) $(OPTFLAGS) $(WARNFLAGS) $(CXXFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -std=c++20 -lstdc++fs -c
+COMPILE.cc = $(Q_CXX)$(CXX) $(OPTFLAGS) $(WARNFLAGS) $(CXXFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -std=c++20 -c
 COMPILE.as = $(Q_AS)$(AS) $(ASFLAGS)
 LINK.o = $(Q_LD)$(CXX) $(OPTFLAGS) $(WARNFLAGS) $(CXXFLAGS) $(LDFLAGS) $(TARGET_ARCH)
 
@@ -621,10 +621,8 @@ CXXFLAGS += -I$(SUBDIR)/oglft
 endif
 
 # script api
-SOURCE += $(SUBDIR)/sapi/utils.cpp
-SOURCE += $(SUBDIR)/sapi/events.cpp
 SOURCE += $(SUBDIR)/sapi/sapi.cpp
-CXXFLAGS += -I$(SUBDIR)/sapi -std=c++17
+CXXFLAGS += -I$(SUBDIR)/sapi -std=c++20
 
 # netplay
 ifeq ($(NETPLAY), 1)
@@ -814,7 +812,7 @@ clean:
 CFLAGS += -MD -MP
 -include $(OBJECTS:.o=.d)
 
-CXXFLAGS += $(CFLAGS) -std=c++17
+CXXFLAGS += $(CFLAGS) -std=c++20
 
 # It is important to disable LTO for this object file
 # otherwise we can't extract usefull information from it.
