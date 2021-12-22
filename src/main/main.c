@@ -80,6 +80,7 @@
 
 #ifdef DBG
 #include "debugger/dbg_debugger.h"
+#include "../subprojects/sapi/sapi.hpp"
 #endif
 
 #ifdef WITH_LIRC
@@ -1775,6 +1776,7 @@ m64p_error main_run(void)
 #ifdef DBG
     if (ConfigGetParamBool(g_CoreConfig, "EnableDebugger"))
         init_debugger();
+    init_sapi();
 #endif
 
     /* Startup message on the OSD */
