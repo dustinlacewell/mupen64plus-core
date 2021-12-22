@@ -37,7 +37,9 @@ extern "C" {
         load_scripts();
     };
 }
-
+#else
+void init_sapi();
 #endif
+
 
 
