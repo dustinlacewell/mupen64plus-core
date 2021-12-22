@@ -287,6 +287,29 @@ endif
 CFLAGS += $(ZLIB_CFLAGS)
 LDLIBS += $(ZLIB_LDLIBS)
 
+
+ifeq ($(origin CJSON_CFLAGS) $(origin CJSON_LDLIBS), undefined undefined)
+  ifeq ($(shell $(PKG_CONFIG) --modversion libcjson 2>/dev/null),)
+    $(error $(shell $(PKG_CONFIG) --modversion libcjson 2>/dev/null))
+    $(error No cJSON development libraries found!)
+  endif
+  CJSON_CFLAGS += $(shell $(PKG_CONFIG) --cflags libcjson)
+  CJSON_LDLIBS +=  $(shell $(PKG_CONFIG) --libs libcjson)
+endif
+CFLAGS += $(CJSON_CFLAGS)
+LDLIBS += $(CJSON_LDLIBS)
+
+ifeq ($(origin DUKTAPE_CFLAGS) $(origin DUKTAPE_LDLIBS), undefined undefined)
+  ifeq ($(shell $(PKG_CONFIG) --modversion duktape 2>/dev/null),)
+    $(error $(shell $(PKG_CONFIG) --modversion duktape 2>/dev/null))
+    $(error No cJSON development libraries found!)
+  endif
+  DUKTAPE_CFLAGS += $(shell $(PKG_CONFIG) --cflags duktape)
+  DUKTAPE_LDLIBS +=  $(shell $(PKG_CONFIG) --libs duktape)
+endif
+CFLAGS += $(DUKTAPE_CFLAGS)
+LDLIBS += $(DUKTAPE_LDLIBS)
+
 ifeq ($(origin MINIZIP_CFLAGS) $(origin MINIZIP_LDLIBS), undefined undefined)
   ifeq ($(shell $(PKG_CONFIG) --modversion minizip 2>/dev/null),)
     CFLAGS += -DNOCRYPT -DNOUNCRYPT -I$(SUBDIR)/minizip
@@ -420,7 +443,7 @@ INSTALL  ?= install
 MKDIR    ?= mkdir -p
 AWK      ?= awk
 COMPILE.c = $(Q_CC)$(CC) $(OPTFLAGS) $(WARNFLAGS) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c
-COMPILE.cc = $(Q_CXX)$(CXX) $(OPTFLAGS) $(WARNFLAGS) $(CXXFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c
+COMPILE.cc = $(Q_CXX)$(CXX) $(OPTFLAGS) $(WARNFLAGS) $(CXXFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -std=c++20 -lstdc++fs -c
 COMPILE.as = $(Q_AS)$(AS) $(ASFLAGS)
 LINK.o = $(Q_LD)$(CXX) $(OPTFLAGS) $(WARNFLAGS) $(CXXFLAGS) $(LDFLAGS) $(TARGET_ARCH)
 
@@ -596,6 +619,11 @@ SOURCE += \
 SOURCE += $(SUBDIR)/oglft/OGLFT.cpp
 CXXFLAGS += -I$(SUBDIR)/oglft
 endif
+
+# script api
+SOURCE += $(SUBDIR)/sapi/utils.cpp
+SOURCE += $(SUBDIR)/sapi/sapi.cpp
+CXXFLAGS += -I$(SUBDIR)/sapi -std=c++17
 
 # netplay
 ifeq ($(NETPLAY), 1)
@@ -785,7 +813,7 @@ clean:
 CFLAGS += -MD -MP
 -include $(OBJECTS:.o=.d)
 
-CXXFLAGS += $(CFLAGS)
+CXXFLAGS += $(CFLAGS) -std=c++17
 
 # It is important to disable LTO for this object file
 # otherwise we can't extract usefull information from it.
