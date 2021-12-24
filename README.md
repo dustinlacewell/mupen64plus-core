@@ -1,5 +1,5 @@
 
-# mupen64plus-core-sapi
+# mupen64plus-core-p64api
 
 This is a fork of [mupen64plus-core](https://github.com/mupen64plus/mupen64plus-core) that adds a [Project64-compatible](https://hack64.net/docs/pj64d/apidoc-unstable.php) Javascript Scripting API:
 
