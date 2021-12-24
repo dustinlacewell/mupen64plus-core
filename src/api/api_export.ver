@@ -60,6 +60,7 @@ DebugMemWrite64;
 DebugMemWrite8;
 DebugSetCallbacks;
 DebugSetCoreCompare;
+EvaluateJs;
 DebugSetRunState;
 DebugStep;
 DebugVirtualToPhysical;

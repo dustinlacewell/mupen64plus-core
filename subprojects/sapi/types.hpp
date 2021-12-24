@@ -5,6 +5,7 @@
 #include <variant>
 #include <vector>
 #include <duktape.h>
+#include <boost/serialization/strong_typedef.hpp>
 
 using namespace std;
 
@@ -26,3 +27,9 @@ typedef map<string, GameMeta*> GameMap;
 typedef map<string, map<string, ScriptMeta*>> EventMap;
 
 typedef variant<string, duk_context*> MaybeContext;
+
+typedef struct {
+    string msg;
+} error;
+
+typedef variant<string, error> MaybeResult;

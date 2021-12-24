@@ -13,6 +13,9 @@ extern "C" {
     #include "api/callbacks.h"
 }
 
+#include "./globals.hpp"
+
+
 optional<string> read_file_text(string path) {
     // check if file exists
     ifstream file(path);
@@ -63,4 +66,29 @@ optional<string> get_script_name(string line) {
     boost::trim(line);
 
     return line;
+}
+
+void dump_context(duk_context* ctx) {
+    #if DUK_DUMP != 0
+    log("Dumping context");
+    duk_push_context_dump(ctx);
+    string dump = duk_to_string(ctx, -1);
+    duk_pop(ctx);
+    log("%s\n", dump.c_str());
+    #endif
+}
+
+void dump_scripts() {
+    #if DUK_DUMP != 0
+    log("%s", "Dumping scripts...");
+    for (auto& [name, meta] : scripts) {
+        log("%s", name.c_str());
+        log("- name: %s", meta->name.c_str());
+        log("- path: %s", meta->path.c_str());
+        log("- ctx is null: %s", meta->ctx == nullptr ? "true" : "false");
+        if (meta->ctx != nullptr) {
+            dump_context(meta->ctx);
+        }
+    }
+    #endif
 }

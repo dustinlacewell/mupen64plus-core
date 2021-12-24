@@ -1,6 +1,7 @@
 #include <string>
 #include <optional>
 #include <filesystem>
+#include <variant>
 
 #include <boost/algorithm/string.hpp>
 #include <cjson/cJSON.h>
@@ -12,13 +13,13 @@
 
 #include "./utils.cpp"
 #include "./events.cpp"
-#include "./duk.cpp"
+#include "./duk/index.cpp"
 
 using namespace std;
 namespace fs = std::filesystem;
 
-optional<ScriptMeta*> init_script(string path) {
-    log("Initializing script: %s", path);
+optional<ScriptMeta*> FUNC(init_script, string path)
+    log("Initializing script: %s", path.c_str());
     optional<string> text = read_file_text(path);
 
     if (!text) {
@@ -43,46 +44,32 @@ optional<ScriptMeta*> init_script(string path) {
     return meta;
 }
 
-void invoke_callback(char* event) {
+void FUNC(invoke_callback, char* event)
     log("Invoking callbacks for event %s", event);
+    dump_scripts();
     call_listeners(event);
+    log("Finished invoking event");
 }
 
-void enable_script(char* name) {
+void FUNC(enable_script, char* name)
     log("Enabling script %s", name);
     ScriptMeta* s = scripts.at(name);
     if (s) {
         if (s->ctx == NULL) {
-            s->ctx = duk_create_heap_default();
+            MaybeContext maybeCtx = duk_init_context(s);
 
-            if (!s->ctx) {
-                log("Failed to create Duktape heap for script: %s", name);
+            if (holds_alternative<string>(maybeCtx)) {
+                log("Could not enable script %s: %s", name, get<string>(maybeCtx).c_str());
                 return;
             }
 
-            duk_push_heap_stash(s->ctx);
-            duk_push_string(s->ctx, name);
-            duk_put_prop_string(s->ctx, -2, "script_name");
-
-            // add console.log as log to the ctx
-            duk_push_c_function(s->ctx, duk_log, 1);
-            duk_put_global_string(s->ctx, "log");
-
-            duk_push_c_function(s->ctx, duk_register_callback, 2);
-            duk_put_global_string(s->ctx, "on");
-
-            if (duk_peval_string(s->ctx, s->text.c_str()) != 0) {
-                log("Failed to execute script: %s", name);
-                log("%s", duk_safe_to_string(s->ctx, -1));
-                duk_destroy_heap(s->ctx);
-                s->ctx = NULL;
-                return;
-            }
+            s->ctx = get<duk_context*>(maybeCtx);
+            log("Script %s enabled", name);
         }
     }
 }
 
-void disable_script(char* name) {
+void FUNC(disable_script, char* name)
     log("Disabling script %s", name);
     ScriptMeta* s = scripts.at(name);
     if (s) {
@@ -93,7 +80,7 @@ void disable_script(char* name) {
     }
 }
 
-vector<string> load_scripts_from(const char* path) {
+vector<string> FUNC(load_scripts_from, const char* path)
     log("Loading scripts from %s", path);
     // create new vector
     vector<string> scripts = vector<string>();
@@ -111,7 +98,7 @@ vector<string> load_scripts_from(const char* path) {
     return scripts;
 }
 
-void init_sapi() {
+void FUNC(init_sapi)
     log("Initializing SAPI");
     games = GameMap();
     scripts = ScriptMap();
@@ -146,4 +133,15 @@ void init_sapi() {
     }
 
     log("Loaded %d scripts", i);
+    dump_scripts();
+}
+
+void FUNC(evaluate, char* script)
+    log("Evaluating some script!");
+    MaybeResult result = duk_evaluate(script);
+    if (holds_alternative<string>(result)) {
+        log("Result: %s", get<string>(result).c_str());
+    } else {
+        log("Error: %s", get<error>(result).msg.c_str());
+    }
 }

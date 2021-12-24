@@ -40,6 +40,8 @@
 #include "m64p_types.h"
 #include "main/main.h"
 
+#include "../sapi/sapi.hpp"
+
 unsigned int op;
 
 /* local variables */
@@ -93,13 +95,24 @@ void CoreCompareDataSync(int length, void *ptr)
 
 /* exported functions for use by the front-end User Interface */
 
+EXPORT m64p_error CALL EvaluateJs(char* js)
+{
+#ifdef DBG
+    DebugMessage(M64MSG_WARNING, "Debugger EvaluateJs: %s", js);
+    evaluate(js);
+    return M64ERR_SUCCESS;
+#else
+    return M64ERR_UNSUPPORTED;
+#endif
+}
+
 EXPORT m64p_error CALL DebugSetCoreCompare(void (*dbg_core_compare)(unsigned int), void (*dbg_core_data_sync)(int, void *))
 {
     callback_core_compare = dbg_core_compare;
     callback_core_data_sync = dbg_core_data_sync;
     return M64ERR_SUCCESS;
 }
- 
+
 EXPORT m64p_error CALL DebugSetCallbacks(void (*dbg_frontend_init)(void), void (*dbg_frontend_update)(unsigned int pc), void (*dbg_frontend_vi)(void))
 {
 #ifdef DBG
